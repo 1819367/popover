@@ -1,31 +1,79 @@
-/* -------------------------------------------------
-   TOP POPOVER – isolated in its own block scope
-   ------------------------------------------------- */
-{
-// Find the trigger and the popover (top version)
-const popoverTrigger = document.querySelector('.popover-trigger')
-const popover = document.querySelector('.popover')
+//==================
+// Variables
+//==================
+const popoverTriggers = document.querySelectorAll('.popover-trigger')
 
-//Get geometry of both elements
-const popoverTriggerRect = popoverTrigger.getBoundingClientRect()
-const popoverRect = popover.getBoundingClientRect()
+/****************
+ * Functions
+ ****************/
+/**
+ * Calculates top and left position of popover
+ * @param {HTMLElement} popoverTrigger
+ * @param {HTMLElement} popover
+ * @returns {Object}  Top andleft values in px (without units)
+ */
+function calculatePopoverPosition(popoverTrigger, popover) {
+    //Get geometry of both elements
+    const popoverTriggerRect = popoverTrigger.getBoundingClientRect()
+    const popoverRect = popover.getBoundingClientRect()
+    const { position } = popover.dataset //find the position of the popover
+    const space = 20 // breathing room between trigger & popover
 
-//Horizontal centering (top popover is centered above the trigger)
-const triggerCenter = (popoverTriggerRect.left + popoverTriggerRect.right) /2
-const leftPosition = triggerCenter - popoverRect.width /2 
-popover.style.left = `${leftPosition}px`
+    //if position is top
+    if (position === "top") {
+         return {
+        top: popoverTriggerRect.top - popoverRect.height - space, 
+        left: 
+            (popoverTriggerRect.left + popoverTriggerRect.right) /2 - 
+            popoverRect.width /2 ,
+        }
+    }
 
-//Vertical placement (above the trigger)
-const space =  20 // breathing room between trigger & popover
-const triggerTop = popoverTriggerRect.top
-const topPosition = triggerTop - popoverRect.height - space
-popover.style.top = `${topPosition}px`
+    if (position === "left") {
+        return {
+            left: popoverTriggerRect.left - popoverRect.width - space,
+            top: (popoverTriggerRect.top + popoverTriggerRect.bottom) /2 - popoverRect.height/2, 
+        }
+    }
 
-//Start hidden
-popover.setAttribute('hidden', true)
+     if (position === "right") {
+        return {
+            left: popoverTriggerRect.right + space,
+            top: (popoverTriggerRect.top + popoverTriggerRect.bottom) /2 - popoverRect.height / 2, 
+        }
+    }
 
-//Show / hide on click of its own trigger
-popoverTrigger.addEventListener('click', _ => {
+     if (position === "bottom") {
+        return {
+            left: (popoverTriggerRect.left + popoverTriggerRect.right) /2 - popoverRect.width / 2,
+            top: popoverTriggerRect.bottom + space, 
+        }
+    }
+}
+
+//===================
+ // Execution
+//===================
+//Positions popover
+popoverTriggers.forEach(popoverTrigger => {
+    const popover = document.querySelector(`#${popoverTrigger.dataset.target}`)
+    const popoverPosition = calculatePopoverPosition(popoverTrigger, popover)
+   
+   //set the popover top and left values
+    popover.style.top = `${popoverPosition.top}px`
+    popover.style.left = `${popoverPosition.left}px`
+
+    //Hides popover once it is positioned
+    popover.setAttribute('hidden', true)
+})
+
+//Event Listeners
+//Show and hide popover when user clicks on the trigger
+document.addEventListener('click', e => {
+    const popoverTrigger = e.target.closest('.popover-trigger')
+    if (!popoverTrigger) return
+
+    const popover = document.querySelector(`#${popoverTrigger.dataset.target}`)
     if (popover.hasAttribute('hidden')) {
         popover.removeAttribute('hidden')
     } else {
@@ -33,59 +81,13 @@ popoverTrigger.addEventListener('click', _ => {
     }
 })
 
-//Click‑outside handling (still scoped to this popover)
+//Hides popover when user clicks something other than trigger or popover
 document.addEventListener('click', e => {
     if (
-        e.target.closest('.popover') ||
-        e.target.closest('.popover-trigger')
-    )
-    return // click was inside a popover or a trigger → ignore
-    popover.setAttribute('hidden', true)
-})
-}  // ← end of the top‑popover block
-
-/* -------------------------------------------------
-   LEFT POPOVER – isolated in its own block scope
-   ------------------------------------------------- */
-{   
-   // Select the 'second' trigger / popover (index 1)
-const popoverTrigger = document.querySelectorAll('.popover-trigger')[1]
-const popover = document.querySelectorAll('.popover')[1]
-
-//Geometry
-const popoverTriggerRect = popoverTrigger.getBoundingClientRect()
-const popoverRect = popover.getBoundingClientRect()
-
-//Compute left position
-const triggerLeft = popoverTriggerRect.left
-const space = 20 // breathing room between trigger & popover
-const leftPosition = triggerLeft - popoverRect.width - space
-popover.style.left = `${leftPosition}px`
-
-//Compute top position
-const triggerCenter = (popoverTriggerRect.top + popoverTriggerRect.bottom) /2
-const topPosition = triggerCenter - popoverRect.height/2
-popover.style.top = `${topPosition}px`
-
-//Start hidden
-popover.setAttribute('hidden', true)
-
-//Show / hide on click of its own trigger
-popoverTrigger.addEventListener('click', _ => {
-    if (popover.hasAttribute('hidden')) {
-        popover.removeAttribute('hidden')
-    } else {
-        popover.setAttribute('hidden', true)
+        !e.target.closest('.popover') &&
+        !e.target.closest('.popover-trigger') 
+    ) {
+        const popovers = [...document.querySelectorAll('.popover')]
+        popovers.forEach(popover => popover.setAttribute('hidden', true))
     }
 })
-
-//Click‑outside handling (still scoped to this popover)
-document.addEventListener('click', e => {
-    if (
-        e.target.closest('.popover') ||
-        e.target.closest('.popover-trigger')
-    )
-    return // click was inside a popover or a trigger → ignore
-    popover.setAttribute('hidden', true)
-})
-}  // ← end of the left‑popover block
