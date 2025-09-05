@@ -3,14 +3,42 @@
 //==================
 const popoverTriggers = document.querySelectorAll('.popover-trigger')
 
-/****************
- * Functions
- ****************/
+//=================
+// Functions
+//=================
+/**
+ * Finds a popover from the trigger
+ * @param {HTMLElement} popoverTrigger
+ */
+function getPopover (popoverTrigger) {
+    return document.querySelector(`#${popoverTrigger.dataset.target}`)
+}
+
+/**
+ * Create a popover according to the trigger
+ * @param {HTMLElement} popoverTrigger
+ * @param {HTMLElement}
+ */
+function createPopover(popoverTrigger) {
+    const popover = document.createElement('div')
+    popover.id = popoverTrigger.dataset.target
+    popover.classList.add('popover')
+    popover.dataset.position = popoverTrigger.dataset.popoverPosition
+
+    const p = document.createElement('p')
+    p.textContent = popoverTrigger.dataset.content
+
+    popover.appendChild(p)
+    document.body.appendChild(popover)
+    // console.log('Created popover:', popover);
+    return popover
+}
+
 /**
  * Calculates top and left position of popover
  * @param {HTMLElement} popoverTrigger
  * @param {HTMLElement} popover
- * @returns {Object}  Top andleft values in px (without units)
+ * @returns {Object}  Top and left values in px (without units)
  */
 function calculatePopoverPosition(popoverTrigger, popover) {
     //Get geometry of both elements
@@ -56,7 +84,7 @@ function calculatePopoverPosition(popoverTrigger, popover) {
 //===================
 //Positions popover
 popoverTriggers.forEach(popoverTrigger => {
-    const popover = document.querySelector(`#${popoverTrigger.dataset.target}`)
+    const popover = getPopover(popoverTrigger) || createPopover(popoverTrigger)
     const popoverPosition = calculatePopoverPosition(popoverTrigger, popover)
    
    //set the popover top and left values
